@@ -1,6 +1,6 @@
 import log from '@app/log';
 import { GameState } from '@app/models/game.configuration';
-import * as ce from '@app/cloud-events/send';
+import * as events from '@app/events';
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '@app/models/player.configuration';
@@ -76,17 +76,19 @@ const shipPositionHandler: MessageHandler<
     opponent?.hasLockedValidShipPositions()
   ) {
     match.setMatchReady();
-    ce.matchStart(game, match, player, opponent);
+    events.matchStart(game, match, player, opponent);
   }
 
   await upsertMatchInCache(match);
 
   if (opponent) {
-    const opponentSocket = getSocketDataContainerByPlayerUUID(opponent.getUUID())
+    const opponentSocket = getSocketDataContainerByPlayerUUID(
+      opponent.getUUID()
+    );
     opponentSocket?.send({
       type: OutgoingMsgType.Configuration,
       data: new PlayerConfiguration(game, opponent, match).toJSON()
-    })
+    });
   }
 
   return {

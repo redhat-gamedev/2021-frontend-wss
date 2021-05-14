@@ -1,5 +1,0 @@
-endpoints:
-  hotrod:
-    auth: false
-  rest:
-    auth: false

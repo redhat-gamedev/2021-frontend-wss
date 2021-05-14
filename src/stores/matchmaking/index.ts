@@ -1,14 +1,11 @@
-import { InfinispanIteratorEntry } from 'infinispan';
-import pLimit from 'p-limit';
-import getDataGridClientForCacheNamed from '@app/datagrid/client';
 import log from '@app/log';
 import MatchInstance, { MatchInstanceData } from '@app/models/match.instance';
 import Player, { UnmatchedPlayerData } from '@app/models/player';
-import { DATAGRID_MATCH_DATA_STORE } from '@app/config';
+import NodeCache from 'node-cache';
 
-const getClient = getDataGridClientForCacheNamed(DATAGRID_MATCH_DATA_STORE);
-const limit = pLimit(1);
-const BATCH_SIZE = 50;
+const cache = new NodeCache({
+  stdTTL: 60 * 60 // 1 hour
+});
 
 /**
  * Creates a new game instance and adds that player to it.
@@ -36,11 +33,12 @@ export async function createMatchInstanceWithData(
 export async function getMatchByUUID(
   uuid: string
 ): Promise<MatchInstance | undefined> {
-  const client = await getClient;
-  const data = await client.get(uuid);
   log.trace(`read match with UUID: ${uuid}`);
+
+  const data = cache.get<MatchInstanceData>(uuid);
+
   if (data) {
-    return MatchInstance.from(JSON.parse(data));
+    return MatchInstance.from(data);
   } else {
     return undefined;
   }
@@ -60,12 +58,11 @@ export async function getMatchAssociatedWithPlayer(
     throw new Error(`player ${player.getUUID()} is missing a match UUID`);
   }
 
-  const client = await getClient;
-  const data = await client.get(uuid);
+  const data = cache.get<MatchInstanceData>(uuid);
 
   if (data) {
     log.trace(`found match for player ${uuid}`);
-    return MatchInstance.from(JSON.parse(data));
+    return MatchInstance.from(data);
   } else {
     log.trace(
       `found no match for ${uuid} for player ${player.getMatchInstanceUUID()}`
@@ -78,84 +75,83 @@ export async function getMatchAssociatedWithPlayer(
  * @param player
  */
 export async function upsertMatchInCache(match: MatchInstance) {
-  const client = await getClient;
   const data = match.toJSON();
 
   log.trace('writing match to cache: %j', data);
 
-  await client.put(match.getUUID(), JSON.stringify(data));
+  cache.set(match.getUUID(), data);
 
   return match;
 }
 
-/**
- * Searches all available games and attempts to add a player.
- *
- * This operation enforces a concurrency limit of 1. This prevents a race
- * condition that could result in a player being added to a game instance, then
- * being overwritten by another player.
- *
- * TODO: improve this to avoid limiting concurrency
- *
- * @param player {Player}
- */
-export async function matchMakeForPlayer(
-  player: UnmatchedPlayerData
-): Promise<MatchInstance> {
-  log.info('matchmaking for player: %j', player);
+// /**
+//  * Searches all available games and attempts to add a player.
+//  *
+//  * This operation enforces a concurrency limit of 1. This prevents a race
+//  * condition that could result in a player being added to a game instance, then
+//  * being overwritten by another player.
+//  *
+//  * TODO: improve this to avoid limiting concurrency
+//  *
+//  * @param player {Player}
+//  */
+// export async function matchMakeForPlayer(
+//   player: UnmatchedPlayerData
+// ): Promise<MatchInstance> {
+//   log.info('matchmaking for player: %j', player);
 
-  const matchInstanceForPlayer = await limit(async () => {
-    const client = await getClient;
-    const iterator = await client.iterator(BATCH_SIZE);
-    const match = await find(iterator.next());
+//   const matchInstanceForPlayer = await limit(async () => {
+//     const client = await getClient;
+//     const iterator = await client.iterator(BATCH_SIZE);
+//     const match = await find(iterator.next());
 
-    // No need to wait for this iterator close
-    iterator.close();
+//     // No need to wait for this iterator close
+//     iterator.close();
 
-    if (match) {
-      return match;
-    } else {
-      const newMatch = await createMatchInstanceWithData(player);
+//     if (match) {
+//       return match;
+//     } else {
+//       const newMatch = await createMatchInstanceWithData(player);
 
-      log.info(
-        `unable to find match for player ${
-          player.uuid
-        }. created new match instance ${newMatch.getUUID()}`
-      );
+//       log.info(
+//         `unable to find match for player ${
+//           player.uuid
+//         }. created new match instance ${newMatch.getUUID()}`
+//       );
 
-      return newMatch;
-    }
+//       return newMatch;
+//     }
 
-    async function find(
-      entryPromise: Promise<InfinispanIteratorEntry>
-    ): Promise<MatchInstance | undefined> {
-      const entry = await entryPromise;
+//     async function find(
+//       entryPromise: Promise<InfinispanIteratorEntry>
+//     ): Promise<MatchInstance | undefined> {
+//       const entry = await entryPromise;
 
-      if (entry.done) {
-        return;
-      } else {
-        const potentialMatch = MatchInstance.from(
-          JSON.parse(entry.value) as MatchInstanceData
-        );
+//       if (entry.done) {
+//         return;
+//       } else {
+//         const potentialMatch = MatchInstance.from(
+//           JSON.parse(entry.value) as MatchInstanceData
+//         );
 
-        log.trace(
-          `checking if player ${player.uuid} can join match: %j,`,
-          potentialMatch.toJSON()
-        );
+//         log.trace(
+//           `checking if player ${player.uuid} can join match: %j,`,
+//           potentialMatch.toJSON()
+//         );
 
-        if (potentialMatch.isJoinable()) {
-          log.info(
-            `adding player ${player.uuid} to match ${potentialMatch.getUUID()}`
-          );
-          potentialMatch.addPlayer(player);
-          await upsertMatchInCache(potentialMatch);
-          return potentialMatch;
-        } else {
-          return find(iterator.next());
-        }
-      }
-    }
-  });
+//         if (potentialMatch.isJoinable()) {
+//           log.info(
+//             `adding player ${player.uuid} to match ${potentialMatch.getUUID()}`
+//           );
+//           potentialMatch.addPlayer(player);
+//           await upsertMatchInCache(potentialMatch);
+//           return potentialMatch;
+//         } else {
+//           return find(iterator.next());
+//         }
+//       }
+//     }
+//   });
 
-  return matchInstanceForPlayer;
-}
+//   return matchInstanceForPlayer;
+// }
