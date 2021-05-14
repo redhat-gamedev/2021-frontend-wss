@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon -e ts,js -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
+    "dev": "nodemon --legacy-watch -e ts,js -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
     "lint": "eslint 'src/**/*.ts'",
     "test": "ts-node -r tsconfig-paths/register node_modules/tape/bin/tape test/*.test.ts test/**/*.test.ts",
     "start": "node -r module-alias/register build/index.js"
