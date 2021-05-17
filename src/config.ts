@@ -43,12 +43,10 @@ const config = {
   GAME_MAX_BONUS_HITS: get('GAME_MAX_BONUS_HITS').default(100).asIntPositive(),
 
   AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
-    .default('http://shipwars-bot-server.shipwars.svc.cluster.local:8080')
+    .default('http://shipwars-bot-server.shipwars.svc.cluster.local:8080/agent')
     .asUrlString(),
 
-  // These are used to construct a websocket URL for agents to connect
-  HOSTNAME: get('HOSTNAME').default('localhost').asString(),
-  NAMESPACE: get('NAMESPACE').asString(),
+  SVC_HOSTNAME: get('SVC_HOSTNAME').default('shipwars-game-server').asString(),
 
   // Optional variables used to enable kafka match update forwarding
   KAKFAJS_CONFIG: {

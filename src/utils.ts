@@ -6,8 +6,7 @@ import { getAllPossibleShipLayouts } from '@app/game/layouts';
 import {
   AI_AGENT_SERVER_URL,
   MAX_HTTP_AGENT_SOCKETS,
-  HOSTNAME,
-  NAMESPACE,
+  SVC_HOSTNAME,
   HTTP_PORT
 } from './config';
 import log from './log';
@@ -15,15 +14,7 @@ import log from './log';
 // Generates a URL for AI agents to connect to this specific instance.
 // We need this since the application is run using a StatefulSet and it's
 // vital that the AI agent and human player connect to the same Pod.
-let wsUrl!: string;
-if (NAMESPACE && HOSTNAME !== 'localhost') {
-  // Create a resolvable URL to the OpenShift service, e.g:
-  // ws://game-server-0.frontend.svc.cluster.local:8080/game
-  wsUrl = `ws://${HOSTNAME}.${NAMESPACE}.svc.cluster.local:${HTTP_PORT}/game`;
-} else {
-  // Running in local development within docker
-  wsUrl = `ws://${HOSTNAME}:${HTTP_PORT}/game`;
-}
+let wsUrl = `ws://${SVC_HOSTNAME}:${HTTP_PORT}/game`;
 
 log.info(`HTTP keep-alive agent will use ${MAX_HTTP_AGENT_SOCKETS} per origin`);
 log.info('Will send the following URL for AI agents to connect to: %s', wsUrl);
