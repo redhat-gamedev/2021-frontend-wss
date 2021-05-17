@@ -1,18 +1,15 @@
-import { DATAGRID_PLAYER_DATA_STORE, NODE_ENV } from '@app/config';
-import getDataGridClientForCacheNamed from '@app/datagrid/client';
-import Player, { UnmatchedPlayerData } from '@app/models/player';
+import Player, { PlayerData } from '@app/models/player';
 import log from '@app/log';
 import generateUserName from './username.generator';
 import { nanoid } from 'nanoid';
 import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { getGameConfiguration } from '@app/stores/game';
-import {
-  createMatchInstanceWithData,
-  matchMakeForPlayer
-} from '@app/stores/matchmaking';
-import MatchInstance from '@app/models/match.instance';
+import { createMatchInstanceWithData } from '@app/stores/matchmaking';
+import NodeCache from 'node-cache';
 
-const getClient = getDataGridClientForCacheNamed(DATAGRID_PLAYER_DATA_STORE);
+const cache = new NodeCache({
+  stdTTL: 60 * 60 // 1 hour
+});
 
 /**
  * Initialises a Player entity based on an incoming "connection" event.
@@ -34,7 +31,7 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
     log.debug(
       `player "${data.playerId}" is trying to reconnect for game "${
         data.gameId
-      }", and current game is "${game.getUUID()}"`
+      }". current game is "${game.getUUID()}"`
     );
   }
 
@@ -65,7 +62,7 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
           }
         }
       );
-      return setupNewPlayer(data);
+      return setupNewPlayer();
     } else {
       log.debug('retrieved existing player: %j', player.toJSON());
 
@@ -76,44 +73,35 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
       'setting up connection attempt with data %j as a new player',
       data
     );
-    return setupNewPlayer(data);
+    return setupNewPlayer();
   }
 }
 
-async function setupNewPlayer(data: ConnectionRequestPayload) {
+async function setupNewPlayer() {
   const newPlayerData = generateNewPlayerData({ ai: false });
-  let newOpponentData!: UnmatchedPlayerData;
-  let match: MatchInstance;
+  const newOpponentData = generateNewPlayerData({ ai: true });
+  const match = await createMatchInstanceWithData(
+    newPlayerData,
+    newOpponentData
+  );
 
   log.debug('setting up new player: %j', newPlayerData);
-
-  if (NODE_ENV === 'prod' || (NODE_ENV === 'dev' && data.useAiOpponent)) {
-    // We default to using AI opponents, but this can be bypassed in dev env
-    newOpponentData = generateNewPlayerData({ ai: true });
-    log.debug(`created AI opponent for player: %j`, newOpponentData);
-    match = await createMatchInstanceWithData(newPlayerData, newOpponentData);
-  } else {
-    log.info(
-      'Perform matchmake for player since they have opted to play vs human'
-    );
-    match = await matchMakeForPlayer(newPlayerData);
-  }
+  log.debug(`created AI opponent for player: %j`, newOpponentData);
 
   const player = new Player({
     ...newPlayerData,
     match: match.getUUID()
   });
 
-  if (newOpponentData) {
-    const opponent = new Player({
-      ...newOpponentData,
-      match: match.getUUID()
-    });
+  const opponent = new Player({
+    ...newOpponentData,
+    match: match.getUUID()
+  });
 
-    await upsertPlayerInCache(opponent);
-  }
-
-  await upsertPlayerInCache(player);
+  await Promise.all([
+    upsertPlayerInCache(opponent),
+    upsertPlayerInCache(player)
+  ]);
 
   return player;
 }
@@ -125,12 +113,12 @@ async function setupNewPlayer(data: ConnectionRequestPayload) {
  */
 async function getPlayerWithUUID(uuid: string): Promise<Player | undefined> {
   log.trace(`reading data for player ${uuid}`);
-  const client = await getClient;
-  const data = await client.get(uuid);
+
+  const data = cache.get<PlayerData>(uuid);
 
   if (data) {
     try {
-      return Player.from(JSON.parse(data));
+      return Player.from(data);
     } catch {
       log.warn(
         `found player data for "${uuid}", but failed to parse to JSON: %j`,
@@ -149,9 +137,10 @@ async function getPlayerWithUUID(uuid: string): Promise<Player | undefined> {
  */
 export async function upsertPlayerInCache(player: Player) {
   const data = player.toJSON();
-  const client = await getClient;
+
   log.trace(`writing player to cache: %j`, data);
-  return client.put(player.getUUID(), JSON.stringify(data));
+
+  return cache.set(player.getUUID(), data);
 }
 
 /**

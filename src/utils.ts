@@ -48,7 +48,7 @@ export function createAiOpponentAgent(
   gameId: string
 ) {
   const { uuid, username } = opts;
-  http(AI_AGENT_SERVER_URL, {
+  http(new URL('/agent', AI_AGENT_SERVER_URL).toString(), {
     method: 'POST',
     json: {
       wsUrl,

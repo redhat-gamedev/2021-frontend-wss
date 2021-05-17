@@ -1,7 +1,7 @@
 import log from '@app/log';
 import * as matchmaking from '@app/stores/matchmaking';
 import { GameState } from '@app/models/game.configuration';
-import * as ce from '@app/cloud-events/send';
+import * as events from '@app/events';
 import { isGameOverForPlayer } from '@app/game';
 import { MessageHandler } from './common';
 import { AttackDataPayload } from '@app/payloads/incoming';
@@ -12,7 +12,6 @@ import {
 import PlayerConfiguration, {
   PlayerConfigurationData
 } from '@app/models/player.configuration';
-import * as ml from '@app/ml';
 import { AttackResult } from '@app/payloads/common';
 import { getSocketDataContainerByPlayerUUID } from './player.sockets';
 import PlayerSocketDataContainer from './player.socket.container';
@@ -74,14 +73,14 @@ const attackHandler: MessageHandler<
     };
   }
 
-  // if (!player.isAiPlayer() && attack.prediction) {
-  //   return {
-  //     type: OutgoingMsgType.BadPayload,
-  //     data: {
-  //       info: `"prediction" key not allowed in data payload`
-  //     }
-  //   };
-  // }
+  if (!player.isAiPlayer() && attack.prediction) {
+    return {
+      type: OutgoingMsgType.BadPayload,
+      data: {
+        info: `"prediction" key not allowed in data payload`
+      }
+    };
+  }
 
   log.debug(
     `determine player ${player.getUUID()} attack hit/miss vs ${opponent.getUUID()}. Attack data %j`,
@@ -110,16 +109,13 @@ const attackHandler: MessageHandler<
   }
 
   // Send the new cloud event type until we move away from the previous hit/miss/sink
-  ce.attack(game, match, player, opponent, attackResult, attack.prediction);
+  events.attack(game, match, player, opponent, attackResult, attack.prediction);
 
   if (isGameOverForPlayer(opponent)) {
     // The opponent's ships have all been hit. This player is the winner!
     match.setWinner(player);
 
-    ce.matchEnd(game, match, player, opponent);
-
-    // Write payload to storage for analysis by ML services
-    ml.writeGameRecord(player, opponent, match, game);
+    events.matchEnd(game, match, player, opponent);
   } else if (attackResult.hit && attackResult.destroyed) {
     // The attack resulted in a ship sinking, start the bonus round
     match.startBonusRound(attackResult.type);

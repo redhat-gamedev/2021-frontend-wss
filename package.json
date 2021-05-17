@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "dev": "NODE_ENV=dev AI_AGENT_SERVER_URL=http://summit-ai-agent-server:3003/agent LOG_LEVEL=trace nodemon -e ts,js -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
+    "dev": "nodemon --legacy-watch -e ts,js -x ts-node -r tsconfig-paths/register src/index.ts | pino-pretty -t",
     "lint": "eslint 'src/**/*.ts'",
     "test": "ts-node -r tsconfig-paths/register node_modules/tape/bin/tape test/*.test.ts test/**/*.test.ts",
     "start": "node -r module-alias/register build/index.js"
@@ -35,9 +35,6 @@
   "homepage": "https://github.com/rhdemo/2021-frontend-wss#readme",
   "dependencies": {
     "ajv": "^8.0.5",
-    "aws-sdk": "^2.843.0",
-    "cloudevents": "^4.0.0",
-    "delay": "~4.4.0",
     "env-var": "~7.0.0",
     "fast-json-stringify": "^2.5.3",
     "fastify": "~3.9.2",
@@ -45,12 +42,13 @@
     "fastify-websocket": "~2.0.11",
     "got": "^11.8.1",
     "humanize-duration": "~3.25.0",
-    "infinispan": "~0.7.0",
     "joi": "~17.3.0",
     "kafkajs": "^1.15.0",
+    "kube-service-bindings": "0.0.2",
     "make-promises-safe": "~5.1.0",
     "module-alias": "^2.2.2",
     "nanoid": "~3.1.20",
+    "node-cache": "^5.1.2",
     "p-limit": "~3.1.0",
     "pino": "~6.9.0"
   },

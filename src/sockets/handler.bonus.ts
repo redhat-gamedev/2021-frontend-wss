@@ -1,7 +1,7 @@
 import { GameState } from '@app/models/game.configuration';
 import { MessageHandler } from './common';
 import { BonusDataPayload } from '@app/payloads/incoming';
-import * as CE from '@app/cloud-events/send';
+import * as events from '@app/events';
 import {
   OutgoingMsgType,
   ValidationErrorPayload
@@ -65,7 +65,7 @@ const bonusHandler: MessageHandler<
   );
 
   // Bonus is a fire and forget event. It doesn't throw errors either.
-  CE.bonus(game, match, player, bonus.hits);
+  events.bonus(game, match, player, bonus.hits);
 
   match.changeTurn();
   await upsertMatchInCache(match);

@@ -10,7 +10,7 @@ async function main() {
   log.info(`bootstrapping game server in "${NODE_ENV}" mode`);
   log.trace('server config: %j', config);
 
-  await game.POST();
+  await game.init();
   await startServer();
 
   heartbeat();

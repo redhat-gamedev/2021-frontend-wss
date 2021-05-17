@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-printf "\n\n######## phone-server push ########\n"
 
-IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-quay.io/redhatdemo/2021-game-server:latest}
+IMAGE_TAG=${IMAGE_TAG:-latest}
+IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-quay.io/evanshortiss/shipwars-game-server}
 
-echo "Pushing ${IMAGE_REPOSITORY}"
-docker push ${IMAGE_REPOSITORY}
+docker push ${IMAGE_REPOSITORY}:${IMAGE_TAG}

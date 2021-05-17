@@ -9,7 +9,7 @@ const config = {
   FASTIFY_LOG_ENABLED: get('FASTIFY_LOG_ENABLED').default('false').asBool(),
 
   // HTTP and WebSocket traffic both use this port
-  HTTP_PORT: get('HTTP_PORT').default(3000).asPortNumber(),
+  HTTP_PORT: get('HTTP_PORT').default(8080).asPortNumber(),
 
   // Maximum number of connections to use when making http requests to
   // a given origin. This does not affect incoming requests to this server
@@ -43,63 +43,26 @@ const config = {
   GAME_MAX_BONUS_HITS: get('GAME_MAX_BONUS_HITS').default(100).asIntPositive(),
 
   AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
-    .default('http://ai-agent-server.ai.svc.cluster.local:8080/agent')
+    .default('http://shipwars-bot-server.shipwars.svc.cluster.local:8080')
     .asUrlString(),
-
-  SCORING_SERVICE_URL: get('SCORING_SERVICE_URL')
-    .default(
-      'http://scoring-service.battleships-scoring.svc.cluster.local:8080/'
-    )
-    .asUrlString(),
-
-  // This is the millisecond threshold at which warnings will print when the
-  // cloud event broker is too slow in responding. Under heavy load it's common
-  // to be over 1000-1500 milliseconds
-  CLOUD_EVENT_WARN_THRESHOLD: get('CLOUD_EVENT_WARN_THRESHOLD')
-    .default('1500')
-    .asIntPositive(),
-
-  CLOUD_EVENT_DISABLED: get('CLOUD_EVENT_DISABLED').default('false').asBool(),
-  CLOUD_EVENT_BROKER_URL: get('CLOUD_EVENT_BROKER_URL')
-    .default(
-      'http://broker-ingress.knative-eventing.svc.cluster.local/battleships-backend/default'
-    )
-    .asUrlString(),
-
-  AWS_ACCESS_KEY_ID: get('AWS_ACCESS_KEY_ID').asString(),
-  AWS_SECRET_ACCESS_KEY: get('AWS_SECRET_ACCESS_KEY').asString(),
-  AWS_BUCKET_NAME: get('AWS_BUCKET_NAME')
-    .default('summit-game-records')
-    .asString(),
-
-  DATAGRID_GAME_DATA_STORE: get('DATAGRID_GAME_DATA_STORE')
-    .default('game')
-    .asString(),
-  DATAGRID_GAME_DATA_KEY: get('DATAGRID_GAME_DATA_KEY')
-    .default('current-game')
-    .asString(),
-  DATAGRID_PLAYER_DATA_STORE: get('DATAGRID_PLAYER_DATA_STORE')
-    .default('players')
-    .asString(),
-  DATAGRID_MATCH_DATA_STORE: get('DATAGRID_MATCH_DATA_STORE')
-    .default('match-instances')
-    .asString(),
-  DATAGRID_HOST: get('DATAGRID_HOST').default('infinispan').asString(),
-  DATAGRID_HOTROD_PORT: get('DATAGRID_HOTROD_PORT')
-    .default(11222)
-    .asPortNumber(),
 
   // These are used to construct a websocket URL for agents to connect
   HOSTNAME: get('HOSTNAME').default('localhost').asString(),
   NAMESPACE: get('NAMESPACE').asString(),
 
   // Optional variables used to enable kafka match update forwarding
-  KAFKA_BOOTSTRAP_URL: get('KAFKA_BOOTSTRAP_URL').asUrlString(),
-  KAFKA_SVC_USERNAME: get('KAFKA_SVC_USERNAME').asString(),
-  KAFKA_SVC_PASSWORD: get('KAFKA_SVC_PASSWORD').asString(),
-  KAFKA_TOPIC_MATCHES: get('KAFKA_TOPIC_MATCHES')
-    .default('match-updates')
-    .asString()
+  KAKFAJS_CONFIG: {
+    clientId: 'shipwars-game-server',
+    brokers: get('KAFKACONNECTION_BOOTSTRAPSERVERS').asArray(),
+    ssl: get('KAFKACONNECTION_SSL').default('true').asBool(),
+    sasl: {
+      mechanism: 'plain',
+      username: get('KAFKACONNECTION_USER').asString(),
+      password: get('KAFKACONNECTION_PASSWORD').asString()
+    }
+  },
+
+  KAFKA_UPDATES_TOPIC: 'shipwars-updates'
 };
 
 export = config;

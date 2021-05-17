@@ -1,8 +1,4 @@
-import {
-  CLUSTER_NAME,
-  DATAGRID_GAME_DATA_KEY,
-  GAME_BONUS_DURATION_MS
-} from '@app/config';
+import { CLUSTER_NAME, GAME_BONUS_DURATION_MS } from '@app/config';
 import Model from './model';
 
 export type GameConfigurationData = {
@@ -38,7 +34,7 @@ export default class GameConfiguration extends Model<GameConfigurationData> {
   }
 
   getModelKey() {
-    return DATAGRID_GAME_DATA_KEY;
+    return 'game';
   }
 
   toJSON(): GameConfigurationData {
