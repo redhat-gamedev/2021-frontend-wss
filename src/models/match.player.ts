@@ -14,7 +14,6 @@ import {
 import Model from './model';
 import { AttackResult, AttackResultHitDestroy } from '@app/payloads/common';
 import log from '@app/log';
-import { number } from 'joi';
 
 /**
  * The location and hit status of a ship cell. A ship will cover multiple cells

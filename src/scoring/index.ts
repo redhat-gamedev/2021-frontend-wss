@@ -6,7 +6,6 @@ import { AttackResult } from '@app/payloads/common';
 import { OutgoingMsgType } from '@app/payloads/outgoing';
 import { getSocketDataContainerByPlayerUUID } from '@app/sockets/player.sockets';
 import { upsertMatchInCache } from '@app/stores/matchmaking';
-import { exist } from 'joi';
 
 type HighScoreEntry = {
   matchId: string;
@@ -69,12 +68,6 @@ export function applyScoreForShot(
   // Score updates need to be sent *after* the attack-result
   setTimeout(() => updatePlayerScoreAndMatch(score, match, player), 50);
 }
-
-/**
- * P
- * @param update
- */
-function writeToHighScores(update: HighScoreEntry) {}
 
 /**
  * Determines if a score should be written to the high-score list

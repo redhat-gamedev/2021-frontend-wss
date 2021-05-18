@@ -9,7 +9,7 @@ const leaderboardRoutePlugin: FastifyPluginCallback = (
 ) => {
   // This is the WS endpoint, i.e ws://localhost:8181/leaderboard
   server.get('/leaderboard', { websocket: true }, (conn) => {
-    let interval = setInterval(() => {
+    const interval = setInterval(() => {
       conn.socket.send(JSON.stringify(getHighScores()));
     }, 2500);
 

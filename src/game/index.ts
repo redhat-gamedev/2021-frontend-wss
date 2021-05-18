@@ -12,7 +12,6 @@ import {
 } from './types';
 import { validators } from '@app/payloads/jsonschema';
 import ValidationError from 'ajv/dist/runtime/validation_error';
-import { AttackResult } from '@app/payloads/common';
 
 const EXPECTED_OCCUPIED_SQUARES: number = Object.values(ShipSize).reduce(
   (total, v) => {

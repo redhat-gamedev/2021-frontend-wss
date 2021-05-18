@@ -151,6 +151,10 @@ function getKafkaConfig(): KafkaConfig | undefined {
   } else {
     try {
       return getBinding(ServiceType.Kafka, ClientType.kafkajs) as KafkaConfig;
-    } catch (e) {}
+    } catch (e) {
+      log.warn(
+        'No Kafka bindings nor environment variables found. Events will not be sent to Kafka'
+      );
+    }
   }
 }
