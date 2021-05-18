@@ -17,6 +17,7 @@ import {
 import getKafkaSender from '@app/kafka';
 import { getBinding, ServiceType, ClientType } from 'kube-service-bindings';
 import { KafkaConfig } from 'kafkajs';
+import log from '@app/log';
 
 const kafkaConfig = getKafkaConfig();
 const kafkaSender = kafkaConfig ? getKafkaSender(kafkaConfig) : undefined;
