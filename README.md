@@ -48,7 +48,7 @@ Previous versions used an external Infinispan cache.
 The game stores state using the following models. All model instances have a
 unique UUID. Models are written to the cache for storage.
 
-* `Game` - The overall game state. Previously could be [updated using an external cache](https://github.com/rhdemo/2021-frontend-wss/blob/master/src/stores/game/index.ts#L62) to pause, stop, reset the overall game state.
+* `Game` - Game is the top-level state that all matches inherit from. Previously could be [updated using an external cache](https://github.com/rhdemo/2021-frontend-wss/blob/master/src/stores/game/index.ts#L62) to pause, stop, reset the overall game and matches for each connected player.
 * `Player` - Represents a connected player.
 * `Match` - Represents a match that two players use to face-off.
 * `MatchPlayer` - Represents match data specific to a player, e.g score, shots, ship positions. Two of these are stored in a `Match` instance.
