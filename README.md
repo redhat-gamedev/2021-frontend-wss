@@ -7,6 +7,29 @@ WebSocket server for the Shipwars game.
 - Node.js v14.3
 - npm 6.14
 
+## Building
+
+The deployment to OpenShift uses a pre-built image. The image can be built and
+pushed to an image registry using included scripts.
+
+Requirements:
+
+* [Source-to-Image (`s2i`)](https://github.com/openshift/source-to-image) (tested with v1.1.13)
+* Docker (tested with v19.03.5)
+
+Optional environment variables are supported to modify image registry and tag.
+
+```bash
+# These are the defaults defined in both scripts, so change them if you'd
+# like to push a different tag or to another image registry/repository
+export IMAGE_TAG=latest
+export IMAGE_REPOSITORY=quay.io/evanshortiss/shipwars-game-server
+
+./scripts/build.sh
+
+./scripts/push.sh
+```
+
 ## Deployment
 
 Use the script documented [here](https://github.com/redhat-gamedev/shipwars-deployment#openshift).
