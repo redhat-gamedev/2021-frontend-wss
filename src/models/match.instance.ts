@@ -252,6 +252,7 @@ function createMatchPlayerFromPlayerAndMatch(
 ): MatchPlayer {
   return new MatchPlayer({
     ...player,
+    score: 0,
     match: match.getUUID()
   });
 }

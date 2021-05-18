@@ -17,6 +17,7 @@ import { getSocketDataContainerByPlayerUUID } from './player.sockets';
 import PlayerSocketDataContainer from './player.socket.container';
 import { getPlayerSpecificData } from './common';
 import { MatchPhase } from '@app/models/match.instance';
+import { applyScoreForShot } from '@app/scoring';
 
 type AttackResponse = {
   // UUID of the player that performed the attack
@@ -110,6 +111,7 @@ const attackHandler: MessageHandler<
 
   // Send the new cloud event type until we move away from the previous hit/miss/sink
   events.attack(game, match, player, opponent, attackResult, attack.prediction);
+  applyScoreForShot(attackResult, match, player);
 
   if (isGameOverForPlayer(opponent)) {
     // The opponent's ships have all been hit. This player is the winner!

@@ -15,6 +15,7 @@ import { getPlayerSpecificData } from './common';
 import { upsertMatchInCache } from '@app/stores/matchmaking';
 import log from '@app/log';
 import { MatchPhase } from '@app/models/match.instance';
+import { applyScoreForBonus } from '@app/scoring';
 
 const bonusHandler: MessageHandler<
   BonusDataPayload,
@@ -66,6 +67,7 @@ const bonusHandler: MessageHandler<
 
   // Bonus is a fire and forget event. It doesn't throw errors either.
   events.bonus(game, match, player, bonus.hits);
+  applyScoreForBonus(bonus.hits, match, player);
 
   match.changeTurn();
   await upsertMatchInCache(match);

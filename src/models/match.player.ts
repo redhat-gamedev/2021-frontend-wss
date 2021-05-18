@@ -14,6 +14,7 @@ import {
 import Model from './model';
 import { AttackResult, AttackResultHitDestroy } from '@app/payloads/common';
 import log from '@app/log';
+import { number } from 'joi';
 
 /**
  * The location and hit status of a ship cell. A ship will cover multiple cells
@@ -59,10 +60,10 @@ export type PlayerPositionData = {
  * only revealed after the particular ship has been completely destroyed
  */
 type OpponentPositionData = {
-  valid: boolean,
+  valid: boolean;
   positions: {
     [key in ShipType]?: StoredShipData;
-  }
+  };
 };
 
 /**
@@ -82,6 +83,7 @@ type MatchPlayerBoardData = {
 export type MatchPlayerData = {
   uuid: string;
   username: string;
+  score: number;
   isAi: boolean;
   match: string;
   board: MatchPlayerBoardData;
@@ -104,12 +106,14 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
   private username: string;
   private isAi: boolean;
   private match: string;
+  private score: number;
 
   constructor(opts: {
     username: string;
     isAi: boolean;
     uuid: string;
     match: string;
+    score: number;
     board?: MatchPlayerBoardData;
     attacks?: StoredAttackData[];
   }) {
@@ -117,6 +121,7 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
 
     this.match = opts.match;
     this.attacks = opts.attacks || [];
+    this.score = isNaN(opts.score) ? 0 : opts.score;
     this.username = opts.username;
     this.isAi = opts.isAi;
 
@@ -202,6 +207,10 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
     return count;
   }
 
+  incrementScoreBy(amount: number) {
+    return (this.score += amount);
+  }
+
   /**
    * Take a validated set on incoming ship positions, initialise them for game
    * logic, and store on this player instance.
@@ -227,24 +236,24 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
    * This is called if this player is the recipient of an attack.
    */
   determineAttackResult({ origin }: AttackDataPayload): AttackResult {
-    const { positions } = this.board
+    const { positions } = this.board;
 
     for (const key in positions) {
-      const ship = positions[key as ShipType]
+      const ship = positions[key as ShipType];
 
       if (!ship.sunk) {
-        const hitCell = ship.cells.find(c => isSameOrigin(c.origin, origin))
+        const hitCell = ship.cells.find((c) => isSameOrigin(c.origin, origin));
 
         if (hitCell) {
-          hitCell.hit = true
+          hitCell.hit = true;
 
           const destroyed = ship.cells.reduce((_destroyed: boolean, v) => {
             return _destroyed && v.hit;
           }, true);
 
           if (destroyed) {
-            log.trace(`marking ${ship.type} as sunk for ${this.getUUID()}`)
-            ship.sunk = true
+            log.trace(`marking ${ship.type} as sunk for ${this.getUUID()}`);
+            ship.sunk = true;
           }
 
           return {
@@ -293,7 +302,7 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
         }
       });
     }
-    log.trace(`revealing ships for player ${this.getUUID()}: %j`, board)
+    log.trace(`revealing ships for player ${this.getUUID()}: %j`, board);
     return {
       username: this.username,
       attacks: this.attacks.map((a) => {
@@ -321,6 +330,7 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
       username: this.username,
       match: this.getMatchInstanceUUID(),
       attacks: this.attacks,
+      score: this.score,
       uuid: this.getUUID()
     };
   }

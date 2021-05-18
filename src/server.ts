@@ -35,6 +35,9 @@ app.register(require('fastify-websocket'), {
 // Expose the game WS endpoint
 app.register(require('./plugins/game'));
 
+// Expose the leaderboard WS endpoint
+app.register(require('./plugins/leaderboard'));
+
 export default async function startServer(): Promise<FastifyInstance> {
   try {
     await app.listen(HTTP_PORT, '0.0.0.0');
