@@ -96,7 +96,8 @@ And a sample response frame stating that the attack landed a hit, and sank the
 opponent's Destroyer. Some data is removed for brevity:
 
 ```js
-type: 'attack-result',
+{
+  type: 'attack-result',
   data: {
     result: {
       hit: true,
