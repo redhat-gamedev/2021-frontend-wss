@@ -43,7 +43,9 @@ export default async function startServer(): Promise<FastifyInstance> {
     await app.listen(HTTP_PORT, '0.0.0.0');
 
     app.log.info(
-      `connect via WebSocket to ws://${getWsAddressFromServer(app.server)}/game`
+      `connect via WebSocket to ws://${getWsAddressFromServer(
+        app.server
+      )}/shipwars/game`
     );
 
     return app;

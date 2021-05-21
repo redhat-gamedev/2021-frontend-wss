@@ -43,7 +43,7 @@ const config = {
   GAME_MAX_BONUS_HITS: get('GAME_MAX_BONUS_HITS').default(100).asIntPositive(),
 
   AI_AGENT_SERVER_URL: get('AI_AGENT_SERVER_URL')
-    .default('http://shipwars-bot-server.shipwars.svc.cluster.local:8080/agent')
+    .default('http://shipwars-bot-server:8080/agent')
     .asUrlString(),
 
   SVC_HOSTNAME: get('SVC_HOSTNAME').default('shipwars-game-server').asString(),
