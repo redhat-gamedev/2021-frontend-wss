@@ -14,7 +14,7 @@ import log from './log';
 // Generates a URL for AI agents to connect to this specific instance.
 // Technically this is no longer necessary, since the application is designed
 // to run as a regular single Pod deploymet without StatefulSet
-const wsUrl = `ws://${SVC_HOSTNAME}:${HTTP_PORT}/game`;
+const wsUrl = `ws://${SVC_HOSTNAME}:${HTTP_PORT}/shipwars/game`;
 
 log.info(`HTTP keep-alive agent will use ${MAX_HTTP_AGENT_SOCKETS} per origin`);
 log.info('Will send the following URL for AI agents to connect to: %s', wsUrl);
