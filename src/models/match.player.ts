@@ -210,6 +210,10 @@ export default class MatchPlayer extends Model<MatchPlayerData> {
     return (this.score += amount);
   }
 
+  getScore() {
+    return this.score;
+  }
+
   /**
    * Take a validated set on incoming ship positions, initialise them for game
    * logic, and store on this player instance.

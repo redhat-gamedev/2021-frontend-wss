@@ -53,6 +53,13 @@ export type MatchStartEvent = {
 
 export type MatchEndEvent = {
   // Send the winner/loser UUIDs
-  winner: string;
-  loser: string;
+  winner: {
+    uuid: string;
+    score: number;
+    shotCount: number;
+  };
+  loser: {
+    uuid: string;
+    score: number;
+  };
 };

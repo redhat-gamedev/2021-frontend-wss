@@ -95,8 +95,15 @@ export async function matchEnd(
     game: game.getUUID(),
     match: match.getUUID(),
     data: {
-      winner: winner.getUUID(),
-      loser: loser.getUUID()
+      winner: {
+        uuid: winner.getUUID(),
+        score: winner.getScore(),
+        shotCount: winner.getShotsFiredCount()
+      },
+      loser: {
+        uuid: loser.getUUID(),
+        score: loser.getScore()
+      }
     }
   };
 
