@@ -6,13 +6,13 @@ import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';
 import {
   EventType,
-  AttackEventData,
-  MatchEndEventData,
-  MatchStartEventData,
-  BonusAttackEventData,
-  AttackingPlayerData,
+  AttackEvent,
+  MatchEndEvent,
+  MatchStartEvent,
+  BonusEvent,
   BasePlayerData,
-  CloudEventBase
+  KafkaEventBase,
+  KafkaEventType
 } from './types';
 import getKafkaSender from '@app/kafka';
 import { getBinding, ServiceType, ClientType } from 'kube-service-bindings';
@@ -28,57 +28,58 @@ export function matchStart(
   playerA: MatchPlayer,
   playerB: MatchPlayer
 ): Promise<void> {
-  const evt: MatchStartEventData = {
+  const evt: KafkaEventBase<MatchStartEvent> = {
     game: game.getUUID(),
     match: match.getUUID(),
-    playerA: toBasePlayerData(playerA),
-    playerB: toBasePlayerData(playerB)
+    data: {
+      playerA: toBasePlayerData(playerA),
+      playerB: toBasePlayerData(playerB)
+    }
   };
-  const type = EventType.MatchStart;
 
-  return sendEvent(type, evt);
+  return sendEvent(EventType.MatchStart, evt);
 }
 
 export function attack(
   game: GameConfiguration,
   match: MatchInstance,
   by: MatchPlayer,
-  against: MatchPlayer,
   attackResult: AttackResult,
-  prediction?: PredictionData
+  scoreDelta: number
 ): Promise<void> {
-  const evt: AttackEventData = {
+  const evt: KafkaEventBase<AttackEvent> = {
     game: game.getUUID(),
-    hit: attackResult.hit,
-    origin: `${attackResult.origin[0]},${attackResult.origin[1]}` as const,
     match: match.getUUID(),
-    by: toAttackingPlayerData(by, prediction),
-    against: toAttackingPlayerData(against, prediction)
+    data: {
+      attacker: by.getUUID(),
+      hit: attackResult.hit,
+      origin: attackResult.origin,
+      destroyed:
+        attackResult.hit && attackResult.destroyed
+          ? attackResult.type
+          : undefined,
+      scoreDelta
+    }
   };
-  const type = EventType.Attack;
 
-  if (attackResult.hit && attackResult.destroyed) {
-    evt.destroyed = attackResult.type;
-  }
-
-  return sendEvent(type, evt);
+  return sendEvent(EventType.Attack, evt);
 }
 
 export function bonus(
   game: GameConfiguration,
   match: MatchInstance,
   player: MatchPlayer,
-  shots: number
+  shots: number,
+  scoreDelta: number
 ): Promise<void> {
-  const evt: BonusAttackEventData = {
+  const evt: KafkaEventBase<BonusEvent> = {
     game: game.getUUID(),
     match: match.getUUID(),
-    by: {
-      username: player.getUsername(),
-      uuid: player.getUUID(),
-      human: !player.isAiPlayer()
-    },
-    shots
+    data: {
+      scoreDelta,
+      attacker: player.getUUID(),
+      shots
+    }
   };
 
   return sendEvent(EventType.Bonus, evt);
@@ -90,31 +91,16 @@ export async function matchEnd(
   winner: MatchPlayer,
   loser: MatchPlayer
 ): Promise<void> {
-  const evt: MatchEndEventData = {
+  const evt: KafkaEventBase<MatchEndEvent> = {
     game: game.getUUID(),
     match: match.getUUID(),
-    winner: toBasePlayerData(winner),
-    loser: toBasePlayerData(loser)
+    data: {
+      winner: winner.getUUID(),
+      loser: loser.getUUID()
+    }
   };
 
   return sendEvent(EventType.MatchEnd, evt);
-}
-
-/**
- * Utility function to create an AttackingPlayerData structured type.
- * @param player
- * @param prediction
- */
-function toAttackingPlayerData(
-  player: MatchPlayer,
-  prediction?: PredictionData
-): AttackingPlayerData {
-  return {
-    consecutiveHitsCount: player.getContinuousHitsCount(),
-    shotCount: player.getShotsFiredCount(),
-    prediction,
-    ...toBasePlayerData(player)
-  };
 }
 
 /**
@@ -137,7 +123,7 @@ function toBasePlayerData(player: MatchPlayer): BasePlayerData {
  * @param data {CloudEventBase}
  * @returns {Promise<void>}
  */
-function sendEvent(type: EventType, data: CloudEventBase) {
+function sendEvent(type: EventType, data: KafkaEventBase<KafkaEventType>) {
   return kafkaSender ? kafkaSender(type, data) : Promise.resolve();
 }
 

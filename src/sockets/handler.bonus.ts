@@ -66,8 +66,8 @@ const bonusHandler: MessageHandler<
   );
 
   // Bonus is a fire and forget event. It doesn't throw errors either.
-  events.bonus(game, match, player, bonus.hits);
-  applyScoreForBonus(bonus.hits, match, player);
+  const scoreDelta = applyScoreForBonus(bonus.hits, match, player);
+  events.bonus(game, match, player, bonus.hits, scoreDelta);
 
   match.changeTurn();
   await upsertMatchInCache(match);

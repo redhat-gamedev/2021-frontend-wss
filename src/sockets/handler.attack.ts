@@ -110,8 +110,8 @@ const attackHandler: MessageHandler<
   }
 
   // Send the new cloud event type until we move away from the previous hit/miss/sink
-  events.attack(game, match, player, opponent, attackResult, attack.prediction);
-  applyScoreForShot(attackResult, match, player);
+  const scoreDelta = applyScoreForShot(attackResult, match, player);
+  events.attack(game, match, player, attackResult, scoreDelta);
 
   if (isGameOverForPlayer(opponent)) {
     // The opponent's ships have all been hit. This player is the winner!

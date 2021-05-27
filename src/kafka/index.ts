@@ -1,9 +1,9 @@
 'use strict';
 
-import { CloudEventBase, EventType } from '@app/events/types';
+import { KafkaEventBase, EventType, KafkaEventType } from '@app/events/types';
 import log from '@app/log';
 import { Kafka, KafkaConfig } from 'kafkajs';
-import { CLUSTER_NAME as cluster, KAFKA_UPDATES_TOPIC } from '@app/config';
+import { CLUSTER_NAME as cluster, KAFKA_TOPIC_PREFIX } from '@app/config';
 
 export default function getKafkaSender(config: KafkaConfig) {
   log.trace('creating kafka connection with configuration: %j', config);
@@ -28,25 +28,26 @@ export default function getKafkaSender(config: KafkaConfig) {
 
   producer.connect();
 
-  return async (type: EventType, data: CloudEventBase) => {
+  return async (type: EventType, data: KafkaEventBase<KafkaEventType>) => {
     const ts = Date.now();
+    const topic = `${KAFKA_TOPIC_PREFIX}-${type}`;
     const message = {
       key: `${data.game}:${data.match}`,
-      value: JSON.stringify({ type, ts, data, cluster })
+      value: JSON.stringify({ ts, data, cluster })
     };
 
     log.debug(
-      `sending match update of type ${type} for key ${message.key} to topic ${KAFKA_UPDATES_TOPIC}`
+      `sending match update of type ${type} for key ${message.key} to topic ${topic}`
     );
     log.trace(`sending payload to kafka: %j`, message);
 
     try {
       await producer.send({
-        topic: KAFKA_UPDATES_TOPIC,
+        topic,
         messages: [message]
       });
       log.debug(
-        `send success for match update of type ${type} for key ${message.key} to topic ${KAFKA_UPDATES_TOPIC}`
+        `send success for match update of type ${type} for key ${message.key} to topic ${topic}`
       );
     } catch (e) {
       log.error('error sending to kafka');

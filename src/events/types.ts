@@ -1,50 +1,58 @@
 import { ShipType } from '@app/game/types';
 import { PlayerPositionData } from '@app/models/match.player';
-import { PredictionData } from '@app/payloads/incoming';
 
 export enum EventType {
-  MatchStart = 'match-start',
-  Attack = 'attack',
-  Bonus = 'bonus',
-  MatchEnd = 'match-end'
+  MatchStart = 'matches',
+  Attack = 'attacks',
+  Bonus = 'bonuses',
+  MatchEnd = 'results'
 }
 
-export type CloudEventBase = { game: string; match: string };
+export type KafkaEventType =
+  | AttackEvent
+  | BonusEvent
+  | MatchStartEvent
+  | MatchEndEvent;
+export type KafkaEventBase<T extends KafkaEventType> = {
+  game: string;
+  match: string;
+  data: T;
+};
 
 export type BasePlayerData = {
   uuid: string;
   username: string;
   human: boolean;
-  board?: PlayerPositionData;
+  board: PlayerPositionData;
 };
 
-export type AttackingPlayerData = BasePlayerData & {
-  human: boolean;
-  consecutiveHitsCount: number;
-  shotCount: number;
-  prediction?: PredictionData;
+export type AttackEvent = {
+  attacker: string;
+  // Hit (true) or miss (false)
+  hit: boolean;
+  // If this shot destroyed a ship, then the ship type is included
+  destroyed?: ShipType;
+  // The shot coordinates
+  origin: [number, number];
+  // The score that this shot was worth
+  scoreDelta: number;
 };
 
-export type MatchStartEventData = CloudEventBase & {
+export type BonusEvent = {
+  attacker: string;
+  // Number of taps/shots the player managed to perform during the bonus round
+  shots: number;
+  // The score that this bonus round was worth
+  scoreDelta: number;
+};
+
+export type MatchStartEvent = {
   playerA: BasePlayerData;
   playerB: BasePlayerData;
 };
 
-export type MatchEndEventData = CloudEventBase & {
-  winner: BasePlayerData;
-  loser: BasePlayerData;
-  score?: number;
-};
-
-export type AttackEventData = CloudEventBase & {
-  hit: boolean;
-  by: AttackingPlayerData;
-  against: Omit<AttackingPlayerData, 'prediction'>;
-  destroyed?: ShipType;
-  origin: `${number},${number}`;
-};
-
-export type BonusAttackEventData = CloudEventBase & {
-  by: Omit<BasePlayerData, 'board'>;
-  shots: number;
+export type MatchEndEvent = {
+  // Send the winner/loser UUIDs
+  winner: string;
+  loser: string;
 };

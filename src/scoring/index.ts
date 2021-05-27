@@ -42,7 +42,9 @@ export function applyScoreForBonus(
   match: MatchInstance,
   player: MatchPlayer
 ) {
-  updatePlayerScoreAndMatch(hits * SCORE_BONUS, match, player);
+  const score = hits * SCORE_BONUS;
+  updatePlayerScoreAndMatch(score, match, player);
+  return score;
 }
 
 /**
@@ -67,6 +69,8 @@ export function applyScoreForShot(
 
   // Score updates need to be sent *after* the attack-result
   setTimeout(() => updatePlayerScoreAndMatch(score, match, player), 50);
+
+  return score;
 }
 
 /**
