@@ -53,14 +53,16 @@ const config = {
     clientId: 'shipwars-game-server',
     brokers: get('KAFKACONNECTION_BOOTSTRAPSERVERS').asArray(),
     ssl: get('KAFKACONNECTION_SSL').default('true').asBool(),
-    sasl: {
-      mechanism: 'plain',
-      username: get('KAFKACONNECTION_USER').asString(),
-      password: get('KAFKACONNECTION_PASSWORD').asString()
-    }
+    sasl: get('KAFKACONNECTION_USER').asString()
+      ? {
+          mechanism: 'plain',
+          username: get('KAFKACONNECTION_USER').asString(),
+          password: get('KAFKACONNECTION_PASSWORD').asString()
+        }
+      : undefined
   },
 
-  KAFKA_UPDATES_TOPIC: 'shipwars-updates'
+  KAFKA_TOPIC_PREFIX: get('KAFKA_TOPIC_PREFIX').default('shipwars').asString()
 };
 
 export = config;
