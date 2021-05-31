@@ -28,7 +28,7 @@ export default function getKafkaSender(config: KafkaConfig) {
 
   producer.connect();
 
-  return async (type: EventType, data: KafkaEventBase<KafkaEventType>) => {
+  return async (type: EventType, data: KafkaEventType) => {
     const ts = Date.now();
     const topic = `${KAFKA_TOPIC_PREFIX}-${type}`;
     const message = {
@@ -39,7 +39,7 @@ export default function getKafkaSender(config: KafkaConfig) {
     log.debug(
       `sending match update of type ${type} for key ${message.key} to topic ${topic}`
     );
-    log.trace(`sending payload to kafka: %j`, message);
+    log.debug(`sending payload to kafka: %j`, message);
 
     try {
       await producer.send({

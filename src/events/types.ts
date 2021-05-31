@@ -13,10 +13,10 @@ export type KafkaEventType =
   | BonusEvent
   | MatchStartEvent
   | MatchEndEvent;
-export type KafkaEventBase<T extends KafkaEventType> = {
+
+export type KafkaEventBase = {
   game: string;
   match: string;
-  data: T;
 };
 
 export type BasePlayerData = {
@@ -26,19 +26,22 @@ export type BasePlayerData = {
   board: PlayerPositionData;
 };
 
-export type AttackEvent = {
+export type AttackEvent = KafkaEventBase & {
   attacker: string;
   // Hit (true) or miss (false)
   hit: boolean;
   // If this shot destroyed a ship, then the ship type is included
   destroyed?: ShipType;
   // The shot coordinates
-  origin: [number, number];
+  origin: {
+    x: number;
+    y: number;
+  };
   // The score that this shot was worth
   scoreDelta: number;
 };
 
-export type BonusEvent = {
+export type BonusEvent = KafkaEventBase & {
   attacker: string;
   // Number of taps/shots the player managed to perform during the bonus round
   shots: number;
@@ -46,12 +49,12 @@ export type BonusEvent = {
   scoreDelta: number;
 };
 
-export type MatchStartEvent = {
+export type MatchStartEvent = KafkaEventBase & {
   playerA: BasePlayerData;
   playerB: BasePlayerData;
 };
 
-export type MatchEndEvent = {
+export type MatchEndEvent = KafkaEventBase & {
   // Send the winner/loser UUIDs
   winner: {
     uuid: string;

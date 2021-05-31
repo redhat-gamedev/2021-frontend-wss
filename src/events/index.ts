@@ -10,7 +10,6 @@ import {
   MatchStartEvent,
   BonusEvent,
   BasePlayerData,
-  KafkaEventBase,
   KafkaEventType
 } from './types';
 import getKafkaSender from '@app/kafka';
@@ -27,13 +26,12 @@ export function matchStart(
   playerA: MatchPlayer,
   playerB: MatchPlayer
 ): Promise<void> {
-  const evt: KafkaEventBase<MatchStartEvent> = {
+  const evt: MatchStartEvent = {
     game: game.getUUID(),
     match: match.getUUID(),
-    data: {
-      playerA: toBasePlayerData(playerA),
-      playerB: toBasePlayerData(playerB)
-    }
+
+    playerA: toBasePlayerData(playerA),
+    playerB: toBasePlayerData(playerB)
   };
 
   return sendEvent(EventType.MatchStart, evt);
@@ -46,19 +44,21 @@ export function attack(
   attackResult: AttackResult,
   scoreDelta: number
 ): Promise<void> {
-  const evt: KafkaEventBase<AttackEvent> = {
+  const evt: AttackEvent = {
     game: game.getUUID(),
     match: match.getUUID(),
-    data: {
-      attacker: by.getUUID(),
-      hit: attackResult.hit,
-      origin: attackResult.origin,
-      destroyed:
-        attackResult.hit && attackResult.destroyed
-          ? attackResult.type
-          : undefined,
-      scoreDelta
-    }
+
+    attacker: by.getUUID(),
+    hit: attackResult.hit,
+    origin: {
+      x: attackResult.origin[0],
+      y: attackResult.origin[1]
+    },
+    destroyed:
+      attackResult.hit && attackResult.destroyed
+        ? attackResult.type
+        : undefined,
+    scoreDelta
   };
 
   return sendEvent(EventType.Attack, evt);
@@ -71,14 +71,13 @@ export function bonus(
   shots: number,
   scoreDelta: number
 ): Promise<void> {
-  const evt: KafkaEventBase<BonusEvent> = {
+  const evt: BonusEvent = {
     game: game.getUUID(),
     match: match.getUUID(),
-    data: {
-      scoreDelta,
-      attacker: player.getUUID(),
-      shots
-    }
+
+    scoreDelta,
+    attacker: player.getUUID(),
+    shots
   };
 
   return sendEvent(EventType.Bonus, evt);
@@ -90,19 +89,18 @@ export async function matchEnd(
   winner: MatchPlayer,
   loser: MatchPlayer
 ): Promise<void> {
-  const evt: KafkaEventBase<MatchEndEvent> = {
+  const evt: MatchEndEvent = {
     game: game.getUUID(),
     match: match.getUUID(),
-    data: {
-      winner: {
-        uuid: winner.getUUID(),
-        score: winner.getScore(),
-        shotCount: winner.getShotsFiredCount()
-      },
-      loser: {
-        uuid: loser.getUUID(),
-        score: loser.getScore()
-      }
+
+    winner: {
+      uuid: winner.getUUID(),
+      score: winner.getScore(),
+      shotCount: winner.getShotsFiredCount()
+    },
+    loser: {
+      uuid: loser.getUUID(),
+      score: loser.getScore()
     }
   };
 
@@ -129,7 +127,7 @@ function toBasePlayerData(player: MatchPlayer): BasePlayerData {
  * @param data {CloudEventBase}
  * @returns {Promise<void>}
  */
-function sendEvent(type: EventType, data: KafkaEventBase<KafkaEventType>) {
+function sendEvent(type: EventType, data: KafkaEventType) {
   return kafkaSender ? kafkaSender(type, data) : Promise.resolve();
 }
 
