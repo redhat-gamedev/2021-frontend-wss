@@ -13,7 +13,7 @@ import {
   KafkaEventType
 } from './types';
 import getKafkaSender from '@app/kafka';
-import { getBinding, ServiceType, ClientType } from 'kube-service-bindings';
+import { getBinding } from 'kube-service-bindings';
 import { KafkaConfig } from 'kafkajs';
 import log from '@app/log';
 
@@ -141,7 +141,7 @@ function getKafkaConfig(): KafkaConfig | undefined {
     return KAKFAJS_CONFIG as KafkaConfig;
   } else {
     try {
-      return getBinding(ServiceType.Kafka, ClientType.kafkajs) as KafkaConfig;
+      return getBinding('KAFKA', 'kafkajs');
     } catch (e) {
       log.warn(
         'No Kafka bindings nor environment variables found. Events will not be sent to Kafka'
