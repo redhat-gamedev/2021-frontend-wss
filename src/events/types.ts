@@ -2,6 +2,7 @@ import { ShipType } from '@app/game/types';
 import { PlayerPositionData } from '@app/models/match.player';
 
 export enum EventType {
+  PlayerCreate = 'players',
   MatchStart = 'matches',
   Attack = 'attacks',
   Bonus = 'bonuses',
@@ -9,6 +10,7 @@ export enum EventType {
 }
 
 export type KafkaEventType =
+  | PlayerCreateEvent
   | AttackEvent
   | BonusEvent
   | MatchStartEvent
@@ -16,14 +18,14 @@ export type KafkaEventType =
 
 export type KafkaEventBase = {
   game: string;
-  match: string;
+  match?: string;
+  uuid?: string;
 };
 
-export type BasePlayerData = {
+export type PlayerCreateEvent = KafkaEventBase & {
   uuid: string;
   username: string;
   human: boolean;
-  board: PlayerPositionData;
 };
 
 export type AttackEvent = KafkaEventBase & {
@@ -50,8 +52,14 @@ export type BonusEvent = KafkaEventBase & {
 };
 
 export type MatchStartEvent = KafkaEventBase & {
-  playerA: BasePlayerData;
-  playerB: BasePlayerData;
+  playerA: {
+    uuid: string;
+    board: PlayerPositionData;
+  };
+  playerB: {
+    uuid: string;
+    board: PlayerPositionData;
+  };
 };
 
 export type MatchEndEvent = KafkaEventBase & {

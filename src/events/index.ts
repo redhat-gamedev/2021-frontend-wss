@@ -1,5 +1,6 @@
 import { KAKFAJS_CONFIG } from '@app/config';
 import MatchPlayer from '@app/models/match.player';
+import Player from '@app/models/player';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';
@@ -9,8 +10,8 @@ import {
   MatchEndEvent,
   MatchStartEvent,
   BonusEvent,
-  BasePlayerData,
-  KafkaEventType
+  KafkaEventType,
+  PlayerCreateEvent
 } from './types';
 import getKafkaSender from '@app/kafka';
 import { getBinding } from 'kube-service-bindings';
@@ -19,6 +20,20 @@ import log from '@app/log';
 
 const kafkaConfig = getKafkaConfig();
 const kafkaSender = kafkaConfig ? getKafkaSender(kafkaConfig) : undefined;
+
+export function playerCreate(
+  game: GameConfiguration,
+  player: Player
+): Promise<void> {
+  const evt: PlayerCreateEvent = {
+    game: game.getUUID(),
+    uuid: player.getUUID(),
+    username: player.getUsername(),
+    human: !player.isAiPlayer()
+  };
+
+  return sendEvent(EventType.PlayerCreate, evt);
+}
 
 export function matchStart(
   game: GameConfiguration,
@@ -111,11 +126,9 @@ export async function matchEnd(
  * Utility function to create an BasePlayerData structured type.
  * @param player
  */
-function toBasePlayerData(player: MatchPlayer): BasePlayerData {
+function toBasePlayerData(player: MatchPlayer) {
   return {
-    username: player.getUsername(),
     uuid: player.getUUID(),
-    human: !player.isAiPlayer(),
     board: player.getShipPositionData()
   };
 }

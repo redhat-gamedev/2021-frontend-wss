@@ -1,6 +1,6 @@
 'use strict';
 
-import { KafkaEventBase, EventType, KafkaEventType } from '@app/events/types';
+import { EventType, KafkaEventType } from '@app/events/types';
 import log from '@app/log';
 import { Kafka, KafkaConfig } from 'kafkajs';
 import { CLUSTER_NAME as cluster, KAFKA_TOPIC_PREFIX } from '@app/config';
@@ -29,10 +29,24 @@ export default function getKafkaSender(config: KafkaConfig) {
   producer.connect();
 
   return async (type: EventType, data: KafkaEventType) => {
+    let key: string;
+
+    if (data.match) {
+      // Key using the game and match UUID
+      key = `${data.game}:${data.match}`;
+    } else if (data.uuid) {
+      // Key using the game and player UUID
+      key = `${data.game}:${data.uuid}`;
+    } else {
+      throw new Error(
+        'Unable to construct kafka message key. Match or player UUID is required.'
+      );
+    }
+
     const ts = Date.now();
     const topic = `${KAFKA_TOPIC_PREFIX}-${type}`;
     const message = {
-      key: `${data.game}:${data.match}`,
+      key,
       value: JSON.stringify({ ts, data, cluster })
     };
 

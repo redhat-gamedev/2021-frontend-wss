@@ -6,6 +6,7 @@ import { ConnectionRequestPayload } from '@app/payloads/incoming';
 import { getGameConfiguration } from '@app/stores/game';
 import { createMatchInstanceWithData } from '@app/stores/matchmaking';
 import NodeCache from 'node-cache';
+import * as events from '@app/events';
 
 const cache = new NodeCache({
   stdTTL: 60 * 60 // 1 hour
@@ -78,6 +79,7 @@ export async function initialisePlayer(data: ConnectionRequestPayload) {
 }
 
 async function setupNewPlayer() {
+  const game = getGameConfiguration();
   const newPlayerData = generateNewPlayerData({ ai: false });
   const newOpponentData = generateNewPlayerData({ ai: true });
   const match = await createMatchInstanceWithData(
@@ -102,6 +104,9 @@ async function setupNewPlayer() {
     upsertPlayerInCache(opponent),
     upsertPlayerInCache(player)
   ]);
+
+  events.playerCreate(game, player);
+  events.playerCreate(game, opponent);
 
   return player;
 }
