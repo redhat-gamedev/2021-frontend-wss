@@ -44,11 +44,11 @@ A simplified version of the [backend](https://github.com/rhdemo/2021-frontend-ws
 used for the live keynote demo at Red Hat Summit 2021.
 
 The initial deployment was performed using a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/).
-Since codebase in this repository is designed to run as a single Pod certain
-oddities from the previous architecture might be hanging about.
+Since the codebase in this repository is designed to run as a single Pod, certain
+oddities from the previous StatefulSet architecture might be hanging about.
 
-Game flow is summarised in the following Sequence(ish) diagram. This activity
-continues until a player has sunk all of the opposing players' ships.
+Game flow is summarised in the following sequence(ish) diagram. This activity
+continues until a player has sunk all of the opposing player's ships.
 
 ![Client-Server Sequence](images/sequence.png)
 
