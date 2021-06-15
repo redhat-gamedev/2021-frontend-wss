@@ -105,9 +105,6 @@ async function setupNewPlayer() {
     upsertPlayerInCache(player)
   ]);
 
-  events.playerCreate(game, player);
-  events.playerCreate(game, opponent);
-
   return player;
 }
 
@@ -155,6 +152,8 @@ export async function upsertPlayerInCache(player: Player) {
 export function generateNewPlayerData(opts: { ai: boolean }) {
   const username = generateUserName();
   const uuid = nanoid();
+
+  events.playerCreate(getGameConfiguration(), uuid, username, !opts.ai);
 
   return { username, isAi: opts.ai, uuid };
 }

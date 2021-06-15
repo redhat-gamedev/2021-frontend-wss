@@ -23,13 +23,15 @@ const kafkaSender = kafkaConfig ? getKafkaSender(kafkaConfig) : undefined;
 
 export function playerCreate(
   game: GameConfiguration,
-  player: Player
+  uuid: string,
+  username: string,
+  human: boolean
 ): Promise<void> {
   const evt: PlayerCreateEvent = {
     game: game.getUUID(),
-    uuid: player.getUUID(),
-    username: player.getUsername(),
-    human: !player.isAiPlayer()
+    uuid,
+    username,
+    human
   };
 
   return sendEvent(EventType.PlayerCreate, evt);
