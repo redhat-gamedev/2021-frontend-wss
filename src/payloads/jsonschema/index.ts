@@ -3,6 +3,7 @@
 import Ajv from 'ajv';
 import { IncomingMsgType } from '../incoming';
 import { OutgoingMsgType } from '../outgoing';
+import { GAME_MAX_BONUS_HITS } from '@app/config';
 import stringify from 'fast-json-stringify';
 
 import incoming_payload = require('./incoming.payload.json');
@@ -11,6 +12,9 @@ import incoming_ship_positions = require('./incoming.ship-positions.json');
 import incoming_attack = require('./incoming.attack.json');
 import incoming_bonus = require('./incoming.bonus.json');
 import incoming_new_match = require('./incoming.new-match.json');
+
+// Set the max allowable bonus "click"/"shot" count
+incoming_bonus.properties.hits.maximum = GAME_MAX_BONUS_HITS;
 
 import outgoing_heartbeat from './outgoing.heartbeat';
 import outgoing_attack_result from './outgoing.attack-result';
