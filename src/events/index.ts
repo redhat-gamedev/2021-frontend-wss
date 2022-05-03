@@ -1,6 +1,5 @@
 import { KAKFAJS_CONFIG } from '@app/config';
 import MatchPlayer from '@app/models/match.player';
-import Player from '@app/models/player';
 import GameConfiguration from '@app/models/game.configuration';
 import MatchInstance from '@app/models/match.instance';
 import { AttackResult } from '@app/payloads/common';

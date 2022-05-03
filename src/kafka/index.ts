@@ -4,6 +4,7 @@ import { EventType, KafkaEventType } from '@app/events/types';
 import log from '@app/log';
 import { Kafka, KafkaConfig } from 'kafkajs';
 import { CLUSTER_NAME as cluster, KAFKA_TOPIC_PREFIX } from '@app/config';
+import CE, { CloudEvent, KafkaMessage } from 'cloudevents';
 
 export default function getKafkaSender(config: KafkaConfig) {
   log.trace('creating kafka connection with configuration: %j', config);
@@ -43,29 +44,39 @@ export default function getKafkaSender(config: KafkaConfig) {
       );
     }
 
-    const ts = Date.now();
     const topic = `${KAFKA_TOPIC_PREFIX}-${type}`;
-    const message = {
-      key,
-      value: JSON.stringify({ ts, data, cluster })
-    };
+    const event = new CloudEvent({
+      type,
+      partitionkey: key,
+      source: 'shipwars-game-server',
+      data: { data, cluster }
+    });
 
+    const km = CE.Kafka.structured(event) as KafkaMessage;
     log.debug(
-      `sending match update of type ${type} for key ${message.key} to topic ${topic}`
+      `sending match update of type ${type} for key ${key} to topic ${topic}`
     );
-    log.debug(`sending payload to kafka: %j`, message);
+    log.debug(`sending payload to kafka: %j`, km);
 
     try {
       await producer.send({
         topic,
-        messages: [message]
+        messages: [
+          {
+            key: km.key,
+            // TODO: remove "as any" when https://github.com/cloudevents/sdk-javascript/issues/487
+            // is resolved
+            headers: km.headers as any,
+            value: km.value as any
+          }
+        ]
       });
       log.debug(
-        `send success for match update of type ${type} for key ${message.key} to topic ${topic}`
+        `send success for match update of type ${type} for key ${km.key} to topic ${topic}`
       );
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('error sending to kafka');
-      log.error(e);
+      log.error({ e });
     }
   };
 }
