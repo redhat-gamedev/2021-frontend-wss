@@ -44,7 +44,7 @@
     "got": "^11.8.1",
     "humanize-duration": "~3.25.0",
     "kafkajs": "^1.15.0",
-    "kube-service-bindings": "github:evanshortiss/kube-service-bindings#typings",
+    "kube-service-bindings": "^0.0.9",
     "make-promises-safe": "~5.1.0",
     "module-alias": "^2.2.2",
     "nanoid": "~3.1.20",

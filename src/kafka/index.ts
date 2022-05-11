@@ -2,14 +2,14 @@
 
 import { EventType, KafkaEventType } from '@app/events/types';
 import log from '@app/log';
-import { Kafka, KafkaConfig } from 'kafkajs';
+import { Kafka as KafkaClient, KafkaConfig } from 'kafkajs';
 import { CLUSTER_NAME as cluster, KAFKA_TOPIC_PREFIX } from '@app/config';
-import CE, { CloudEvent, KafkaMessage } from 'cloudevents';
+import { Kafka, CloudEvent, KafkaMessage } from 'cloudevents';
 
 export default function getKafkaSender(config: KafkaConfig) {
   log.trace('creating kafka connection with configuration: %j', config);
 
-  const kafka = new Kafka(config);
+  const kafka = new KafkaClient(config);
   const producer = kafka.producer();
 
   producer.on(producer.events.CONNECT, () => {
@@ -52,7 +52,7 @@ export default function getKafkaSender(config: KafkaConfig) {
       data: { data, cluster }
     });
 
-    const km = CE.Kafka.structured(event) as KafkaMessage;
+    const km = Kafka.structured(event) as KafkaMessage;
     log.debug(
       `sending match update of type ${type} for key ${key} to topic ${topic}`
     );

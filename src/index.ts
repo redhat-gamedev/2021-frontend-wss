@@ -14,6 +14,8 @@ async function main() {
   await startServer();
 
   heartbeat();
+
+  log.info('game server startup complete');
 }
 
 main();
