@@ -29,4 +29,4 @@ COPY --chown=1001:1001 --from=build /usr/src/app/build/ build/
 COPY --chown=1001:1001 --from=deps /usr/src/app/package*.json/ .
 COPY --chown=1001:1001 --from=deps /usr/src/app/node_modules/ node_modules/
 
-CMD ["node", "build/index.js"]
+CMD ["node", "-r", "module-alias/register", "build/index.js"]
