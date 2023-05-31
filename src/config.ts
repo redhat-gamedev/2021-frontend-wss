@@ -48,6 +48,10 @@ const config = {
 
   SVC_HOSTNAME: get('SVC_HOSTNAME').default('shipwars-game-server').asString(),
 
+  AI_AGENT_WSS_URL: get('AI_AGENT_WSS_URL')
+    .example('wss://foo.bar.com/shipwars/game')
+    .asString(),
+
   // Optional variables used to enable kafka match update forwarding
   KAKFAJS_CONFIG: {
     clientId: 'shipwars-game-server',
